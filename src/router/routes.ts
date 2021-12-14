@@ -44,7 +44,7 @@ export const constantRoutes = [
                 name:'face-recognition',
                 component: () => import('@/application/face/face-recognition.vue'),
                 meta: {
-                    title: '人脸识别'
+                    title: '人脸识别对比'
                 },
             },
             {
