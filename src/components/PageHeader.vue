@@ -105,7 +105,6 @@ let routes = constantRoutes.map((ele, index) => {
 export default defineComponent({
   setup () {
 	let defaultPath:string = window.location.pathname
-	console.log(defaultPath);
 	
 	return {
 		menuOptions: routes.filter(ele => ele),
