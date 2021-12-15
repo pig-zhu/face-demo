@@ -1,6 +1,6 @@
 <template>
     <div style="position: relative" class="margin">
-        <n-space justify="space-between">
+        <n-space>
             <div style="width: 300px;margin-right: 10px">
                 <h4>原始图片输入</h4>
                 <label for="">选择一个照片吧：</label>
@@ -12,7 +12,7 @@
                 <n-divider title-placement="left">或者</n-divider>
                 <label for="">从本地选一张图片：</label>
                 <n-upload
-                    @change="handleChange"
+                    @change="handleChange1"
                     :default-upload="false"
                     ref="upload1"
                 >
@@ -34,9 +34,9 @@
                 <n-divider title-placement="left">或者</n-divider>
                 <label for="">从本地选一张图片：</label>
                 <n-upload
-                    @change="handleChange"
+                    @change="handleChange2"
                     :default-upload="false"
-                    ref="upload"
+                    ref="upload2"
                 >
                     <n-button>选择文件</n-button>
                 </n-upload>
@@ -44,13 +44,13 @@
             </div>
             <div>
                 <div style="position: relative">
-                <img id="inputImg1" style="width: 100%;border:0" :src="drawImg1" />
+                <img id="inputImg1" style="max-width: 100%;border:0" :src="drawImg1" />
                 <!-- <n-spin :show="showLoading"> -->
                     <canvas class="overlay" id="overlay1" />
                 <!-- </n-spin> -->
             </div>
             <div style="position: relative">
-                <img id="inputImg2" style="width: 100%;border:0" :src="drawImg2" />
+                <img id="inputImg2" style="max-width: 100%;border:0" :src="drawImg2" />
                 <!-- <n-spin :show="showLoading"> -->
                     <canvas class="overlay" id="overlay2" />
                 <!-- </n-spin> -->
@@ -130,38 +130,40 @@ export default defineComponent({
         selectvalue1(val) {
             this.drawImg1 = `public/images/${val}`
             setTimeout(() => {
-                this.updateResults1()
+                this.updateResults(1).then(() => {
+                    this.updateResults(2)
+                })
             }, 0)
         },
         selectvalue2(val) {
             this.drawImg2 = `public/images/${val}`
             setTimeout(() => {
-                this.updateResults2()
+                this.updateResults(2)
             }, 0)
         },
         facevalue(val) {
             this.fnInit()
-            this.updateResults1()
         }
     },
+    created() {
+        faceapi.loadFaceLandmarkModel("/models");
+        faceapi.loadFaceRecognitionModel('/models')
+    },
     mounted() {
-        // this.updateResults()
-        this.$nextTick(() => {
-            this.fnInit().then(() => this.updateResults());
-        });
         this.$message = useMessage()
         this.inputImgEl1 = document.getElementById('inputImg1')
         this.inputImgEl2 = document.getElementById('inputImg2')
         this.canvas1 = document.getElementById('overlay1')
         this.canvas2 = document.getElementById('overlay2')
+        this.$nextTick(() => {
+            this.fnInit()
+        });
     },
     methods: {
         // 初始化模型加载
         async fnInit() {
             this.showLoading = true
             await faceapi.nets[this.facevalue].loadFromUri("/models");
-            await faceapi.loadFaceLandmarkModel("/models");
-            await faceapi.loadFaceRecognitionModel('/models')
             // await faceapi.loadFaceExpressionModel('/models')
             // 根据模型参数识别调整结果
             switch (this.facevalue) {
@@ -184,21 +186,33 @@ export default defineComponent({
                 break;
             }
             this.showLoading = false
+            this.updateResults(1).then(() => {
+                this.updateResults(2)
+            })
         },
-        handleChange({event, file, fileList}) {
-            this.drawImg = URL.createObjectURL(file.file)
-            this.updateResults()
-            this.fileList = fileList
+        handleChange1({event, file, fileList}) {
+            this.drawImg1 = URL.createObjectURL(file.file)
+            this.updateResults(1).then(() => {
+                this.updateResults(2)
+            })
+            this.fileList1 = fileList
         },
-        handleUpdateChecked(value){
-            this.checked = value
-            this.updateResults()
+        handleChange2({event, file, fileList}) {
+            this.drawImg2 = URL.createObjectURL(file.file)
+            this.updateResults(2)
+            this.fileList2 = fileList
         },
-        async clickConfirm() {
-            if (this.imgUrl) {
-                let img = await this.requestExternalImage(this.imgUrl)
-                this.drawImg = img.src
-                this.updateResults()
+        async clickConfirm(type = 1) {
+            if (this[`imgUrl${type}`]) {
+                let img = await this.requestExternalImage(this[`imgUrl${type}`])
+                this[`drawImg${type}`] = img.src
+                if (type == 1) {
+                    this.updateResults(1).then(() => {
+                        this.updateResults(2)
+                    })
+                } else {
+                    this.updateResults(2)
+                }
             }
         },
         getCurrentFaceDetectionNet() {
@@ -227,33 +241,38 @@ export default defineComponent({
             }
         },
         async updateResults(type = 1) {
-            const canvas = this[`canvas${type}`]
-            const inputImgEl = this[`inputImgEl${type}`]
-            canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height)
-            const fullFaceDescriptions = await faceapi
-                .detectAllFaces(inputImgEl, this.getFaceDetectorOptions())
-                .withFaceLandmarks()
-                .withFaceDescriptors()
+                if (type ==2 && !this.faceMatcher) {
+                    return
+                }
+                const canvas = this[`canvas${type}`]
+                const inputImgEl = this[`inputImgEl${type}`]
+                canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height)
+                const fullFaceDescriptions = await faceapi
+                    .detectAllFaces(inputImgEl, this.getFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptors()
 
-            if (!fullFaceDescriptions.length) {
-                return
-            }
-            canvas.width = inputImgEl.width
-            canvas.height = inputImgEl.height
-            this.faceMatcher = new faceapi.FaceMatcher(fullFaceDescriptions)
-            faceapi.matchDimensions(canvas, inputImgEl)
-            let res = faceapi.resizeResults(fullFaceDescriptions, inputImgEl)
-            if (res.length) {
-                const labels = this.faceMatcher.labeledDescriptors.map(ld => ld.label)
-                res.forEach(({ detection, descriptor }) => {
-                    const label = this.faceMatcher.findBestMatch(descriptor).toString()
-                    const options = { label }
-                    const drawBox = new faceapi.draw.DrawBox(detection.box, options)
-                    drawBox.draw(canvas)
-                })
-            } else {
-                this.$message.error('这可能不是个人！')
-            }
+                if (!fullFaceDescriptions.length) {
+                    return
+                }
+                canvas.width = inputImgEl.width
+                canvas.height = inputImgEl.height
+                if (type == 1) {
+                    this.faceMatcher = new faceapi.FaceMatcher(fullFaceDescriptions)
+                }
+                faceapi.matchDimensions(canvas, inputImgEl)
+                let res = faceapi.resizeResults(fullFaceDescriptions, inputImgEl)
+                if (res.length) {
+                    // const labels = this.faceMatcher.labeledDescriptors.map(ld => ld.label)
+                    res.forEach(({ detection, descriptor }) => {
+                        const label = this.faceMatcher.findBestMatch(descriptor).toString()
+                        const options = { label }
+                        const drawBox = new faceapi.draw.DrawBox(detection.box, options)
+                        drawBox.draw(canvas)
+                    })
+                } else {
+                    this.$message.error('这可能不是个人！')
+                }
         }
     }
 });

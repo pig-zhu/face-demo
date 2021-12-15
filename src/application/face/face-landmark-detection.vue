@@ -1,6 +1,6 @@
 <template>
     <div style="position: relative" class="margin">
-        <n-space justify="space-between">
+        <n-space>
             <div style="width: 300px;margin-right: 10px">
                 <h4>图片输入</h4>
                 <label for="">选择一个照片吧：</label>

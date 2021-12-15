@@ -1,7 +1,5 @@
 <template>
-    <p>
-        这里是首页
-    </p>
+    <iframe width="100%" frameborder='0' height="100%" src="https://tpolong.github.io/"></iframe>
 </template>
 
 <script lang="ts">
