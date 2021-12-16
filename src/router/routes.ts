@@ -92,14 +92,6 @@ export const constantRoutes = [
         },
         children: [
             {
-                path: '/bbt-face-landmark-detection',
-                name:'bbt-face-landmark-detection',
-                component: () => import('@/application/bbt/bbt-face-landmark-detection.vue'),
-                meta: {
-                    title: 'BBT人脸识别'
-                },
-            },
-            {
                 path: '/bbt-face-similarity',
                 name:'bbt-face-similarity',
                 component: () => import('@/application/bbt/bbt-face-similarity.vue'),
