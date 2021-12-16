@@ -1,1 +1,0 @@
-import{_ as e}from"./index.8a868333.js";import{d as n,x as o,o as r}from"./vendor.bfc80f33.js";const t=n({name:"Login",data(){return{}}});function a(s,c,u,p,d,f){return r(),o("p",null," \u8FD9\u91CC\u662F\u767B\u5F55\u9875 ")}var m=e(t,[["render",a]]);export{m as default};

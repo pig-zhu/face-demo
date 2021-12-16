@@ -1,1 +1,0 @@
-import{_ as o}from"./index.8a868333.js";import{d as r,r as n,c as t,o as a}from"./vendor.bfc80f33.js";const s=r({name:"face",data(){return{}}});function c(p,_,f,d,i,m){const e=n("router-view");return a(),t(e)}var x=o(s,[["render",c]]);export{x as default};
