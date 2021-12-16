@@ -1,0 +1,1 @@
+import{defineComponent as o,resolveComponent as r,openBlock as n,createBlock as t}from"vue";import{_ as c}from"./index.6ca97e4d.js";import"./vendor.464b1a6c.js";const a=o({name:"face",data(){return{}}});function p(s,_,i,d,m,f){const e=r("router-view");return n(),t(e)}var l=c(a,[["render",p]]);export{l as default};
