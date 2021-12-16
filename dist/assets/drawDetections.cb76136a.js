@@ -1,0 +1,1 @@
+import{F as n,i as e,B as t,r as b,D as x}from"./FaceMatcher.94dbf9cd.js";function w(c,r){var i=Array.isArray(r)?r:[r];i.forEach(function(a){var o=a instanceof n?a.score:e(a)?a.detection.score:void 0,s=a instanceof n?a.box:e(a)?a.detection.box:new t(a),f=o?""+b(o):void 0;new x(s,{label:f}).draw(c)})}export{w as d};

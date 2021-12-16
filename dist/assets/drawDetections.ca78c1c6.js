@@ -1,1 +1,0 @@
-import{F as e,i as n,B as t,a as u,D as x}from"./resizeResults.d064f547.js";function l(s,r){var i=Array.isArray(r)?r:[r];i.forEach(function(a){var o=a instanceof e?a.score:n(a)?a.detection.score:void 0,c=a instanceof e?a.box:n(a)?a.detection.box:new t(a),f=o?""+u(o):void 0;new x(c,{label:f}).draw(s)})}export{l as d};

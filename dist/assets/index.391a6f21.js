@@ -1,0 +1,1 @@
+import{defineComponent as e,openBlock as t,createElementBlock as o}from"vue";import{_ as r}from"./index.1b47e509.js";import"./vendor.464b1a6c.js";const n=e({name:"home",data(){return{}}}),a={width:"100%",frameborder:"0",height:"100%",src:"https://tpolong.github.io/"};function i(s,c,p,d,m,_){return t(),o("iframe",a)}var l=r(n,[["render",i]]);export{l as default};
