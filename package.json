@@ -1,8 +1,8 @@
 {
   "version": "0.0.0",
   "scripts": {
-    "dev": "vite --host 3000",
-    "build": "vite build",
+    "dev": "vite",
+    "build": "vite build --base=./",
     "serve": "vite preview"
   },
   "dependencies": {

@@ -59,7 +59,7 @@ export const constantRoutes = [
     },
     {
         path: '/webcamAge',
-        name:'face',
+        name:'webcamAge',
         component: () => import('@/application/webcamAge/index.vue'),
         meta: {
             title: '网络摄像头检测'
@@ -80,30 +80,6 @@ export const constantRoutes = [
                 meta: {
                     title: '网络摄像头人脸检测'
                 },
-            },
-            {
-                path: '/webcam-face-landmark-detection',
-                name:'webcam-face-landmark-detection',
-                component: () => import('@/application/webcamAge/webcam-face-landmark-detection.vue'),
-                meta: {
-                    title: '网络摄像头人脸地标检测'
-                },
-            },
-            {
-                path: '/webcam-face-expression-recognition',
-                name:'webcam-face-expression-recognition',
-                component: () => import('@/application/webcamAge/webcam-face-expression-recognition.vue'),
-                meta: {
-                    title: '网络摄像头人脸表情识别'
-                },
-            },
-            {
-                path: '/webcam-age-gender-recognition',
-                name:'webcam-age-gender-recognition',
-                component: () => import('@/application/webcamAge/webcam-age-gender-recognition.vue'),
-                meta: {
-                    title: '网络摄像头年龄性别检测'
-                },
             }
         ]
     },
@@ -120,7 +96,7 @@ export const constantRoutes = [
                 name:'bbt-face-landmark-detection',
                 component: () => import('@/application/bbt/bbt-face-landmark-detection.vue'),
                 meta: {
-                    title: 'BBT人脸地标检测'
+                    title: 'BBT人脸识别'
                 },
             },
             {
