@@ -1,0 +1,362 @@
+<template>
+    <div style="position: relative" class="margin">
+        <n-space>
+            <div style="width: 300px;margin-right: 10px">
+                <h4>图片输入</h4>
+                <label for="">选择一个照片吧：</label>
+                <n-select v-model:value="selectvalue" :options="defaultImgs" />
+                <n-divider title-placement="left">或者</n-divider>
+                <label for="">输入一个图片链接：</label>
+                <n-input v-model:value="imgUrl" type="text" placeholder="图片链接" />
+                <n-button @click="clickConfirm">确定</n-button>
+                <n-divider title-placement="left">或者</n-divider>
+                <label for="">从本地选一张图片：</label>
+                <n-upload
+                    @change="handleChange"
+                    :default-upload="false"
+                    ref="upload"
+                >
+                    <n-button>选择文件</n-button>
+                </n-upload>
+                <n-divider title-placement="left"></n-divider>
+                <h4>选择人脸检测器</h4>
+                <n-select v-model:value="facevalue" :options='faces' />
+                <n-divider title-placement="left"></n-divider>
+                <h4>样本库</h4>
+                <n-button @click="viewSample">查看样本库</n-button>
+                <!-- <n-checkbox style="margin-top: 10px" @update:checked="handleUpdateChecked" label="隐藏边界框" /> -->
+            </div>
+            <div style="position: relative">
+                <img id="inputImg" style="width: 100%;border:0" :src="drawImg" />
+                <canvas id="overlay" />
+            </div>
+        </n-space>
+    </div>
+    <n-modal v-model:show="showLoading">
+        <div class="loader">
+            加载中...
+        </div>
+    </n-modal>
+    <n-modal
+        class="custom-card"
+        v-model:show="showView"
+        preset="card"
+        :style='{ width: "800px" }'
+        title="样本库"
+        size="huge"
+        :bordered="false"
+    >   
+        <template #default> 
+            <n-image-group>
+                <div>
+                    <h4>小包</h4>
+                    <n-image
+                        width="100"
+                        height="100"
+                        src="public/images/bbt1.jpg"
+                    />
+                    <n-image
+                        width="100"
+                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
+                    />
+                    <n-image
+                        width="100"
+                        height="100"
+                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
+                    />
+                    <n-image
+                        width="100"
+                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
+                    />
+                    <n-image
+                        width="100"
+                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
+                    />
+                    <n-image
+                        width="100"
+                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
+                    />
+                    <n-image
+                        width="100"
+                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
+                    />
+                </div>
+                <div>
+                    <h4>打包</h4>
+                    <n-image
+                        width="100"
+                        src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
+                    />
+                    <n-image
+                        width="100"
+                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
+                    />
+                </div>
+            </n-image-group> 
+        </template>
+        
+    </n-modal>
+</template>
+
+<script>
+import { defineComponent } from "vue";
+import { useMessage } from 'naive-ui'
+import * as faceapi from 'face-api.js'
+export default defineComponent({
+    name: "bbt-face-matching",
+    data() {
+		return {
+            showModal: true,
+            showView: false,
+            showLoading: false,
+            minConfidence: 0.5,
+            scoreThreshold: 0.5,
+            inputSize: 512,
+            imgUrl: '',
+            fileList: [],
+            selectvalue: 'bbt1.jpg',
+            facevalue: 'ssdMobilenetv1',
+            drawImg: '/images/bbt1.jpg',
+            defaultImgs: [
+                {
+                    label: 'bbt1.jpg',
+                    value: 'bbt1.jpg'
+                },
+                {
+                    label: 'bbt2.jpg',
+                    value: 'bbt2.jpg'
+                },
+                {
+                    label: 'bbt3.jpg',
+                    value: 'bbt3.jpg'
+                },
+                {
+                    label: 'bbt4.jpg',
+                    value: 'bbt4.jpg'
+                },
+                {
+                    label: 'bbt5.jpg',
+                    value: 'bbt5.jpg'
+                }
+            ],
+            faces: [
+                {
+                    label: 'SSD Mobilenet V1',
+                    value: 'ssdMobilenetv1'
+                },
+                {
+                    label: 'Tiny Face Detector',
+                    value: 'tinyFaceDetector'
+                }
+            ],
+            options: null
+		}
+	},
+    watch: {
+        selectvalue(val) {
+            this.drawImg = `public/images/${val}`
+            this.updateResults()
+        },
+        facevalue(val) {
+            this.fnInit()
+            this.updateResults()
+        }
+    },
+    mounted() {
+        // this.updateResults()
+        this.$nextTick(() => {
+            this.fnInit().then(() => this.updateResults());
+        });
+        this.$message = useMessage()
+    },
+    methods: {
+        // 初始化模型加载
+        async fnInit() {
+            this.showLoading = true
+            await faceapi.nets[this.facevalue].loadFromUri("/models");
+            // await faceapi.loadFaceLandmarkModel("/models");
+            // 根据模型参数识别调整结果
+            switch (this.facevalue) {
+                case "ssdMobilenetv1":
+                this.options = new faceapi.SsdMobilenetv1Options({
+                    minConfidence: 0.5, // 0.1 ~ 0.9
+                });
+                break;
+                case "tinyFaceDetector":
+                this.options = new faceapi.TinyFaceDetectorOptions({
+                    inputSize: 512, // 160 224 320 416 512 608
+                    scoreThreshold: 0.5, // 0.1 ~ 0.9
+                });
+                break;
+                case "mtcnn":
+                this.options = new faceapi.MtcnnOptions({
+                    minFaceSize: 20, // 1 - 50
+                    scaleFactor: 0.709, // 0.1 ~ 0.9
+                });
+                break;
+            }
+            this.showLoading = false
+        },
+        handleChange({event, file, fileList}) {
+            this.drawImg = URL.createObjectURL(file.file)
+            this.updateResults()
+            this.fileList = fileList
+        },
+        // 查看样本库
+        viewSample() {
+            this.showView = true
+        },
+        async clickConfirm() {
+            if (this.imgUrl) {
+                let img = await this.requestExternalImage(this.imgUrl)
+                this.drawImg = img.src
+                this.updateResults()
+            }
+        },
+        getCurrentFaceDetectionNet() {
+            if (this.facevalue === 'ssdMobilenetv1') {
+                return faceapi.nets.ssdMobilenetv1
+            }
+            if (this.facevalue === 'tinyFaceDetector') {
+                return faceapi.nets.tinyFaceDetector
+            }
+        },
+        isFaceDetectionModelLoaded() {
+            return !!this.getCurrentFaceDetectionNet().params
+        },
+        getFaceDetectorOptions() {
+            return this.facevalue === 'ssdMobilenetv1'
+                ? new faceapi.SsdMobilenetv1Options({ minConfidence:this.minConfidence })
+                : new faceapi.TinyFaceDetectorOptions({ inputSize:this.inputSize, scoreThreshold:this.scoreThreshold })
+        },
+        async requestExternalImage(imageUrl){
+            let res = await fetch(imageUrl)
+            try {
+                let blob = await res.blob()
+                return await faceapi.bufferToImage(blob)
+            } catch (e) {
+                throw new Error('failed to load image from url: ' + imageUrl)
+            }
+        },
+        async updateResults() {
+            if (!this.isFaceDetectionModelLoaded()) {
+                return
+            }
+
+            const inputImgEl = document.getElementById('inputImg')
+            const options = this.getFaceDetectorOptions()
+
+            const results = await faceapi.detectAllFaces(inputImgEl, options)
+
+            const canvas = document.getElementById('overlay')
+            canvas.width = inputImgEl.width
+            canvas.height = inputImgEl.height
+            faceapi.matchDimensions(canvas, inputImgEl)
+            let res = faceapi.resizeResults(results, inputImgEl)
+            if (res.length) {
+                faceapi.draw.drawDetections(canvas, res)
+            } else {
+                this.$message.error('这可能不是个人！')
+            }
+        }
+    }
+});
+</script>
+
+<style scoped>
+label {
+    font-size: 12px;
+    color: #333;
+}
+.n-space {
+    flex-flow: nowrap !important;
+}
+#overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.loader {
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  margin: auto;
+  width: 175px;
+  height: 100px;
+}
+.loader span {
+  display: block;
+  background: #1ecf3c;
+  width: 7px;
+  height: 100%;
+  border-radius: 14px;
+  margin-right: 5px;
+  float: left;
+}
+.loader span:last-child {
+  margin-right: 0px;
+}
+.loader span:nth-child(1) {
+  animation: load 2.5s 1.4s infinite linear;
+}
+.loader span:nth-child(2) {
+  animation: load 2.5s 1.2s infinite linear;
+}
+.loader span:nth-child(3) {
+  animation: load 2.5s 1s infinite linear;
+}
+.loader span:nth-child(4) {
+  animation: load 2.5s 0.8s infinite linear;
+}
+.loader span:nth-child(5) {
+  animation: load 2.5s 0.6s infinite linear;
+}
+.loader span:nth-child(6) {
+  animation: load 2.5s 0.4s infinite linear;
+}
+.loader span:nth-child(7) {
+  animation: load 2.5s 0.2s infinite linear;
+}
+.loader span:nth-child(8) {
+  animation: load 2.5s 0s infinite linear;
+}
+.loader span:nth-child(9) {
+  animation: load 2.5s 0.2s infinite linear;
+}
+.loader span:nth-child(10) {
+  animation: load 2.5s 0.4s infinite linear;
+}
+.loader span:nth-child(11) {
+  animation: load 2.5s 0.6s infinite linear;
+}
+.loader span:nth-child(12) {
+  animation: load 2.5s 0.8s infinite linear;
+}
+.loader span:nth-child(13) {
+  animation: load 2.5s 1s infinite linear;
+}
+.loader span:nth-child(14) {
+  animation: load 2.5s 1.2s infinite linear;
+}
+.loader span:nth-child(15) {
+  animation: load 2.5s 1.4s infinite linear;
+}
+@keyframes load {
+  0% {
+    background: #531430;
+    transform: scaleY(0.08);
+  }
+  50% {
+    background: #1ecf3c;
+        
+   transform: scaleY(1);
+  }
+  100% {
+    background: #531430;    
+    transform: scaleY(0.08);
+  }
+}
+</style>
