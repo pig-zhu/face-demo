@@ -99,38 +99,38 @@ export const constantRoutes = [
                     title: 'BBT相似性检测'
                 },
             },
-            {
-                path: '/bbt-face-matching',
-                name:'bbt-face-matching',
-                component: () => import('@/application/bbt/bbt-face-matching.vue'),
-                meta: {
-                    title: 'BBT面部匹配'
-                },
-            },
-            {
-                path: '/bbt-face-recognition',
-                name:'bbt-face-recognition',
-                component: () => import('@/application/bbt/bbt-face-recognition.vue'),
-                meta: {
-                    title: 'BBT人脸识别系统'
-                },
-            },
-            {
-                path: '/bbt-batch-face-landmark-detection',
-                name:'bbt-batch-face-landmark-detection',
-                component: () => import('@/application/bbt/bbt-batch-face-landmark-detection.vue'),
-                meta: {
-                    title: '批量人脸地标检测'
-                },
-            },
-            {
-                path: '/bbt-batch-face-recognition',
-                name:'bbt-batch-face-recognition',
-                component: () => import('@/application/bbt/bbt-batch-face-recognition.vue'),
-                meta: {
-                    title: '批量人脸识别'
-                },
-            }
+            // {
+            //     path: '/bbt-face-matching',
+            //     name:'bbt-face-matching',
+            //     component: () => import('@/application/bbt/bbt-face-matching.vue'),
+            //     meta: {
+            //         title: 'BBT面部匹配'
+            //     },
+            // },
+            // {
+            //     path: '/bbt-face-recognition',
+            //     name:'bbt-face-recognition',
+            //     component: () => import('@/application/bbt/bbt-face-recognition.vue'),
+            //     meta: {
+            //         title: 'BBT人脸识别系统'
+            //     },
+            // },
+            // {
+            //     path: '/bbt-batch-face-landmark-detection',
+            //     name:'bbt-batch-face-landmark-detection',
+            //     component: () => import('@/application/bbt/bbt-batch-face-landmark-detection.vue'),
+            //     meta: {
+            //         title: '批量人脸地标检测'
+            //     },
+            // },
+            // {
+            //     path: '/bbt-batch-face-recognition',
+            //     name:'bbt-batch-face-recognition',
+            //     component: () => import('@/application/bbt/bbt-batch-face-recognition.vue'),
+            //     meta: {
+            //         title: '批量人脸识别'
+            //     },
+            // }
         ]
     },
     {

@@ -3,9 +3,9 @@
         <n-space>
             <div style="width: 300px;margin-right: 10px">
                 <h4>图片输入</h4>
-                <label for="">选择一个照片吧：</label>
+                <!-- <label for="">选择一个照片吧：</label>
                 <n-select v-model:value="selectvalue" :options="defaultImgs" />
-                <n-divider title-placement="left">或者</n-divider>
+                <n-divider title-placement="left">或者</n-divider> -->
                 <label for="">输入一个图片链接：</label>
                 <n-input v-model:value="imgUrl" type="text" placeholder="图片链接" />
                 <n-button @click="clickConfirm">确定</n-button>
@@ -27,8 +27,18 @@
                 <!-- <n-checkbox style="margin-top: 10px" @update:checked="handleUpdateChecked" label="隐藏边界框" /> -->
             </div>
             <div style="position: relative">
-                <img id="inputImg" style="width: 100%;border:0" :src="drawImg" />
-                <canvas id="overlay" />
+                <h4>匹配图</h4>
+                <img id="inputImg" style="max-width: 600px;border:0" :src="drawImg" />
+                <h3>识别结果（误差值越小越准确）：</h3>
+                <div v-for="(res, j) in resultArr" :key="j" class="result">
+                    <img :src="detArr[j]" :alt="res.result" />
+                    <div class="info">
+                    <span>对比：{{ res.target }}</span>
+                    <span>结果：{{ res.result }}</span>
+                    <span>时间：{{ res.time }}</span>
+                    <span>FPS：{{ res.fps }}</span>
+                    </div>
+                </div>
             </div>
         </n-space>
     </div>
@@ -48,48 +58,14 @@
     >   
         <template #default> 
             <n-image-group>
-                <div>
-                    <h4>小包</h4>
+                <div v-for="item in simpleImages" :key='item.name'>
+                    <h4>{{item.name}}</h4>
                     <n-image
+                        v-for="image in item.img"
+                        :key="image"
                         width="100"
                         height="100"
-                        src="/images/bbt1.jpg"
-                    />
-                    <n-image
-                        width="100"
-                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
-                    />
-                    <n-image
-                        width="100"
-                        height="100"
-                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
-                    />
-                    <n-image
-                        width="100"
-                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
-                    />
-                    <n-image
-                        width="100"
-                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
-                    />
-                    <n-image
-                        width="100"
-                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
-                    />
-                    <n-image
-                        width="100"
-                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
-                    />
-                </div>
-                <div>
-                    <h4>打包</h4>
-                    <n-image
-                        width="100"
-                        src="https://07akioni.oss-cn-beijing.aliyuncs.com/07akioni.jpeg"
-                    />
-                    <n-image
-                        width="100"
-                        src="https://gw.alipayobjects.com/zos/antfincdn/aPkFc8Sj7n/method-draw-image.svg"
+                        :src="image"
                     />
                 </div>
             </n-image-group> 
@@ -102,10 +78,12 @@
 import { defineComponent } from "vue";
 import { useMessage } from 'naive-ui'
 import * as faceapi from 'face-api.js'
+import { simpleImages } from '@public/js/example'
 export default defineComponent({
     name: "bbt-face-matching",
     data() {
 		return {
+            simpleImages: simpleImages,
             showModal: true,
             showView: false,
             showLoading: false,
@@ -149,7 +127,10 @@ export default defineComponent({
                     value: 'tinyFaceDetector'
                 }
             ],
-            options: null
+            options: null,
+            faceMatcher: null,
+            inputImgEl: null,
+            resultArr: []
 		}
 	},
     watch: {
@@ -168,13 +149,15 @@ export default defineComponent({
             this.fnInit().then(() => this.updateResults());
         });
         this.$message = useMessage()
+        this.inputImgEl = document.getElementById('inputImg')
     },
     methods: {
         // 初始化模型加载
         async fnInit() {
             this.showLoading = true
             await faceapi.nets[this.facevalue].loadFromUri("/models");
-            // await faceapi.loadFaceLandmarkModel("/models");
+            await faceapi.loadFaceLandmarkModel("/models");
+            await faceapi.loadFaceRecognitionModel("/models");
             // 根据模型参数识别调整结果
             switch (this.facevalue) {
                 case "ssdMobilenetv1":
@@ -195,11 +178,31 @@ export default defineComponent({
                 });
                 break;
             }
+            await this.fnfaceMatcher()
             this.showLoading = false
+        },
+        // 生成人脸匹配矩阵数组对象，样本图片同步转码
+        async fnfaceMatcher() {
+            const labeledFaceDescriptors = await Promise.all(
+                this.simpleImages.map(async (item) => {
+                    // 临时图片转码数据，将图片对象转数据矩阵对象
+                    let descriptors = [];
+                    for (let image of item.img) {
+                        const imageEl = await faceapi.fetchImage(image);
+                        descriptors.push(await faceapi.computeFaceDescriptor(imageEl));
+                    }
+                    // 返回图片用户和图片转码数组
+                    return new faceapi.LabeledFaceDescriptors(item.name, descriptors);
+                })
+            );
+            // 人脸匹配矩阵数组对象转码结果
+            this.faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors);
         },
         handleChange({event, file, fileList}) {
             this.drawImg = URL.createObjectURL(file.file)
-            this.updateResults()
+            setTimeout(() => {
+                this.updateResults()
+            }, 1000);
             this.fileList = fileList
         },
         // 查看样本库
@@ -208,7 +211,7 @@ export default defineComponent({
         },
         async clickConfirm() {
             if (this.imgUrl) {
-                let img = await this.requestExternalImage(this.imgUrl)
+                let img = await faceapi.fetchImage(this.imgUrl);
                 this.drawImg = img.src
                 this.updateResults()
             }
@@ -224,40 +227,14 @@ export default defineComponent({
         isFaceDetectionModelLoaded() {
             return !!this.getCurrentFaceDetectionNet().params
         },
-        getFaceDetectorOptions() {
-            return this.facevalue === 'ssdMobilenetv1'
-                ? new faceapi.SsdMobilenetv1Options({ minConfidence:this.minConfidence })
-                : new faceapi.TinyFaceDetectorOptions({ inputSize:this.inputSize, scoreThreshold:this.scoreThreshold })
-        },
-        async requestExternalImage(imageUrl){
-            let res = await fetch(imageUrl)
-            try {
-                let blob = await res.blob()
-                return await faceapi.bufferToImage(blob)
-            } catch (e) {
-                throw new Error('failed to load image from url: ' + imageUrl)
-            }
-        },
         async updateResults() {
             if (!this.isFaceDetectionModelLoaded()) {
                 return
             }
 
-            const inputImgEl = document.getElementById('inputImg')
-            const options = this.getFaceDetectorOptions()
-
-            const results = await faceapi.detectAllFaces(inputImgEl, options)
-
-            const canvas = document.getElementById('overlay')
-            canvas.width = inputImgEl.width
-            canvas.height = inputImgEl.height
-            faceapi.matchDimensions(canvas, inputImgEl)
-            let res = faceapi.resizeResults(results, inputImgEl)
-            if (res.length) {
-                faceapi.draw.drawDetections(canvas, res)
-            } else {
-                this.$message.error('这可能不是个人！')
-            }
+            this.resultArr.forEach(({ detection, descriptor }) => {
+                const label = this.faceMatcher.findBestMatch(descriptor).toString();
+            });
         }
     }
 });
@@ -278,85 +255,8 @@ label {
 }
 
 .loader {
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
-  margin: auto;
-  width: 175px;
-  height: 100px;
-}
-.loader span {
-  display: block;
-  background: #1ecf3c;
-  width: 7px;
-  height: 100%;
-  border-radius: 14px;
-  margin-right: 5px;
-  float: left;
-}
-.loader span:last-child {
-  margin-right: 0px;
-}
-.loader span:nth-child(1) {
-  animation: load 2.5s 1.4s infinite linear;
-}
-.loader span:nth-child(2) {
-  animation: load 2.5s 1.2s infinite linear;
-}
-.loader span:nth-child(3) {
-  animation: load 2.5s 1s infinite linear;
-}
-.loader span:nth-child(4) {
-  animation: load 2.5s 0.8s infinite linear;
-}
-.loader span:nth-child(5) {
-  animation: load 2.5s 0.6s infinite linear;
-}
-.loader span:nth-child(6) {
-  animation: load 2.5s 0.4s infinite linear;
-}
-.loader span:nth-child(7) {
-  animation: load 2.5s 0.2s infinite linear;
-}
-.loader span:nth-child(8) {
-  animation: load 2.5s 0s infinite linear;
-}
-.loader span:nth-child(9) {
-  animation: load 2.5s 0.2s infinite linear;
-}
-.loader span:nth-child(10) {
-  animation: load 2.5s 0.4s infinite linear;
-}
-.loader span:nth-child(11) {
-  animation: load 2.5s 0.6s infinite linear;
-}
-.loader span:nth-child(12) {
-  animation: load 2.5s 0.8s infinite linear;
-}
-.loader span:nth-child(13) {
-  animation: load 2.5s 1s infinite linear;
-}
-.loader span:nth-child(14) {
-  animation: load 2.5s 1.2s infinite linear;
-}
-.loader span:nth-child(15) {
-  animation: load 2.5s 1.4s infinite linear;
-}
-@keyframes load {
-  0% {
-    background: #531430;
-    transform: scaleY(0.08);
-  }
-  50% {
-    background: #1ecf3c;
-        
-   transform: scaleY(1);
-  }
-  100% {
-    background: #531430;    
-    transform: scaleY(0.08);
-  }
+  text-align: center;
+  color: aquamarine;
+  font-size: 14px;
 }
 </style>
