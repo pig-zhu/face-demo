@@ -52,7 +52,7 @@ export default defineComponent({
             scoreThreshold: 0.5,
             inputSize: 512,
             imgUrl: '',
-            drawImg: 'public/media/test.mp4',
+            drawImg: '/media/test.mp4',
             facevalue: 'ssdMobilenetv1',
             faces: [
                 {

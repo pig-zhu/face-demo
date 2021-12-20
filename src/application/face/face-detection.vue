@@ -108,7 +108,7 @@ export default defineComponent({
 	},
     watch: {
         selectvalue(val) {
-            this.drawImg = `public/images/${val}`
+            this.drawImg = `/images/${val}`
             this.updateResults()
         },
         facevalue(val) {

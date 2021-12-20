@@ -53,7 +53,7 @@
                     <n-image
                         width="100"
                         height="100"
-                        src="public/images/bbt1.jpg"
+                        src="/images/bbt1.jpg"
                     />
                     <n-image
                         width="100"
@@ -154,7 +154,7 @@ export default defineComponent({
 	},
     watch: {
         selectvalue(val) {
-            this.drawImg = `public/images/${val}`
+            this.drawImg = `/images/${val}`
             this.updateResults()
         },
         facevalue(val) {

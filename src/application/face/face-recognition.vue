@@ -128,7 +128,7 @@ export default defineComponent({
 	},
     watch: {
         selectvalue1(val) {
-            this.drawImg1 = `public/images/${val}`
+            this.drawImg1 = `/images/${val}`
             setTimeout(() => {
                 this.updateResults(1).then(() => {
                     this.updateResults(2)
@@ -136,7 +136,7 @@ export default defineComponent({
             }, 0)
         },
         selectvalue2(val) {
-            this.drawImg2 = `public/images/${val}`
+            this.drawImg2 = `/images/${val}`
             setTimeout(() => {
                 this.updateResults(2)
             }, 0)
