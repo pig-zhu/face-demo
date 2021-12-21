@@ -31,25 +31,6 @@
             </div>
         </n-space>
     </div>
-    <n-modal v-model:show="showLoading">
-        <div class="loader">
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-        <span></span>
-    </div>
-    </n-modal>
     
 </template>
 
@@ -70,7 +51,7 @@ export default defineComponent({
             fileList: [],
             selectvalue: 'bbt1.jpg',
             facevalue: 'ssdMobilenetv1',
-            drawImg: '/images/bbt1.jpg',
+            drawImg: 'images/bbt1.jpg',
             defaultImgs: [
                 {
                     label: 'bbt1.jpg',
@@ -108,7 +89,7 @@ export default defineComponent({
 	},
     watch: {
         selectvalue(val) {
-            this.drawImg = `/images/${val}`
+            this.drawImg = `images/${val}`
             this.updateResults()
         },
         facevalue(val) {
@@ -126,9 +107,6 @@ export default defineComponent({
     methods: {
         // 初始化模型加载
         async fnInit() {
-            this.showLoading = true
-            await faceapi.nets[this.facevalue].loadFromUri("/models");
-            // await faceapi.loadFaceLandmarkModel("/models");
             // 根据模型参数识别调整结果
             switch (this.facevalue) {
                 case "ssdMobilenetv1":
@@ -149,7 +127,6 @@ export default defineComponent({
                 });
                 break;
             }
-            this.showLoading = false
         },
         handleChange({event, file, fileList}) {
             this.drawImg = URL.createObjectURL(file.file)
@@ -231,85 +208,8 @@ label {
 }
 
 .loader {
-  position: absolute;
-  top: 0px;
-  bottom: 0px;
-  left: 0px;
-  right: 0px;
-  margin: auto;
-  width: 175px;
-  height: 100px;
-}
-.loader span {
-  display: block;
-  background: #1ecf3c;
-  width: 7px;
-  height: 100%;
-  border-radius: 14px;
-  margin-right: 5px;
-  float: left;
-}
-.loader span:last-child {
-  margin-right: 0px;
-}
-.loader span:nth-child(1) {
-  animation: load 2.5s 1.4s infinite linear;
-}
-.loader span:nth-child(2) {
-  animation: load 2.5s 1.2s infinite linear;
-}
-.loader span:nth-child(3) {
-  animation: load 2.5s 1s infinite linear;
-}
-.loader span:nth-child(4) {
-  animation: load 2.5s 0.8s infinite linear;
-}
-.loader span:nth-child(5) {
-  animation: load 2.5s 0.6s infinite linear;
-}
-.loader span:nth-child(6) {
-  animation: load 2.5s 0.4s infinite linear;
-}
-.loader span:nth-child(7) {
-  animation: load 2.5s 0.2s infinite linear;
-}
-.loader span:nth-child(8) {
-  animation: load 2.5s 0s infinite linear;
-}
-.loader span:nth-child(9) {
-  animation: load 2.5s 0.2s infinite linear;
-}
-.loader span:nth-child(10) {
-  animation: load 2.5s 0.4s infinite linear;
-}
-.loader span:nth-child(11) {
-  animation: load 2.5s 0.6s infinite linear;
-}
-.loader span:nth-child(12) {
-  animation: load 2.5s 0.8s infinite linear;
-}
-.loader span:nth-child(13) {
-  animation: load 2.5s 1s infinite linear;
-}
-.loader span:nth-child(14) {
-  animation: load 2.5s 1.2s infinite linear;
-}
-.loader span:nth-child(15) {
-  animation: load 2.5s 1.4s infinite linear;
-}
-@keyframes load {
-  0% {
-    background: #531430;
-    transform: scaleY(0.08);
-  }
-  50% {
-    background: #1ecf3c;
-        
-   transform: scaleY(1);
-  }
-  100% {
-    background: #531430;    
-    transform: scaleY(0.08);
-  }
+  text-align: center;
+  color: aquamarine;
+  font-size: 14px;
 }
 </style>

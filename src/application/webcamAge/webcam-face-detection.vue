@@ -53,7 +53,7 @@
             </div>
         </n-space>
     </div>
-    <n-modal v-model:show="showLoading">
+    <n-modal v-model:show="showLoading" :mask-closable="false">
         <div class="loader">加载中...</div>
     </n-modal>
     
@@ -150,8 +150,6 @@ export default defineComponent({
         // 初始化模型加载
         async fnInit() {
             this.showLoading = true
-            await faceapi.nets[this.facevalue].loadFromUri("/models");// 算法模型
-            await faceapi.loadFaceLandmarkModel("/models");// 轮廓模型
             await faceapi.loadFaceExpressionModel("/models"); // 表情模型
             await faceapi.loadAgeGenderModel("/models"); // 年龄模型
             // 根据模型参数识别调整结果

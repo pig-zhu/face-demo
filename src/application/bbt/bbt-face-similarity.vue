@@ -42,15 +42,17 @@
             </div>
             <div style="display: flex">
                 <div style="position: relative;margin-right: 20px">
+                    <h4>原始图片</h4>
                     <img id="inputImg1" style="max-width: 100%;border:0" :src="drawImg1" />
                 </div>
                 <div style="position: relative">
+                    <h4>对比图片</h4>
                     <img id="inputImg2" style="max-width: 100%;border:0" :src="drawImg2" />
                 </div>
             </div>
         </n-space>
     </div>
-    <n-modal v-model:show="showLoading">
+    <n-modal v-model:show="showLoading" :mask-closable="false">
         <div class="loader">加载中...</div>
     </n-modal>
     

@@ -30,9 +30,6 @@
             </div>
         </n-space>
     </div>
-    <n-modal v-model:show="showLoading">
-        <div class="loader">加载中...</div>
-    </n-modal>
     
 </template>
 
@@ -97,9 +94,6 @@ export default defineComponent({
         },
         // 初始化模型加载
         async fnInit() {
-            this.showLoading = true
-            await faceapi.nets[this.facevalue].loadFromUri("/models");
-            await faceapi.loadFaceLandmarkModel("/models");
             // 根据模型参数识别调整结果
             switch (this.facevalue) {
                 case "ssdMobilenetv1":
@@ -120,7 +114,6 @@ export default defineComponent({
                 });
                 break;
             }
-            this.showLoading = false
         },
         handleChange({event, file, fileList}) {
             this.drawImg = URL.createObjectURL(file.file)

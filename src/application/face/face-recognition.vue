@@ -58,7 +58,7 @@
             </div>
         </n-space>
     </div>
-    <n-modal v-model:show="showLoading">
+    <n-modal v-model:show="showLoading" :mask-closable="false">
         <div class="loader">加载中...</div>
     </n-modal>
     
@@ -146,7 +146,6 @@ export default defineComponent({
         }
     },
     created() {
-        faceapi.loadFaceLandmarkModel("/models");
         faceapi.loadFaceRecognitionModel('/models')
     },
     mounted() {

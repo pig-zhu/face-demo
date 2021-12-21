@@ -9,7 +9,9 @@ export default defineConfig({
     alias: {
    		  '@': resolve(__dirname, 'src'),
         '@components': resolve(__dirname, 'src/components'),
-        '@public': resolve(__dirname, 'public'),
+        'images': 'public/images',
+        'models': 'public/models',
+        'media': 'public/media',
         find: /\/@ts\//,
         replacement: resolve('src') + '/',
     }
